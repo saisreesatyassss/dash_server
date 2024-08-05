@@ -18,7 +18,10 @@ router.post('/register', async (req, res) => {
     const existingUser = await User.findOne({ $or: [{ username }, { phoneNumber }] });
     if (existingUser) {
       console.log('User already exists:', existingUser);
-      return res.status(400).json({ message: 'User with the given username or phone number already exists' });
+
+        const token = jwt.sign({ userId: existingUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+      return res.status(400).json({ message: 'User with the given username or phone number already exists', token });
     }
 
     // Hash password
