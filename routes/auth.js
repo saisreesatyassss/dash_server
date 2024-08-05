@@ -42,33 +42,34 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 });
-
-// Sign-in Route
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { phoneNumber, password } = req.body;
 
-    console.log('Received login data:', { username, password });
+    console.log('Received login data:', { phoneNumber, password });
 
-    // Find user
-    const user = await User.findOne({ username });
+    // Find user by phone number
+    const user = await User.findOne({ phoneNumber });
     if (!user) {
+      console.warn('User not found with phone number:', phoneNumber);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.warn('Password mismatch for phone number:', phoneNumber);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Generate JWT
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
+    console.log('Login successful for phone number:', phoneNumber);
     res.json({ token });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error', error });
+    console.error('Login error:', error.message);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
